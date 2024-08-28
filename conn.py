@@ -16,25 +16,31 @@ try:
     # สร้าง cursor เพื่อทำงานกับฐานข้อมูล
     cursor = conn.cursor()
 
-    # รายชื่อตารางที่ต้องการดึงข้อมูล
-    tables_to_query = ['Customer']
+    
+    # กำหนดค่าของตัวแปร OfficerUserName
+    OfficerUserName = 'username_here'  # แทนที่ 'username_here' ด้วยชื่อผู้ใช้ที่ต้องการค้นหา
 
-    # วนลูปผ่านแต่ละตารางที่ระบุ
-    for table_name in tables_to_query:
-        print(f"\n--- ข้อมูลจากตาราง: {table_name} ---")
-        
-        # คิวรีข้อมูลจากตารางที่ระบุ
-        cursor.execute(f"SELECT * FROM {table_name}")
-        
-        # ดึงคอลัมน์ของตาราง
-        columns = [column[0] for column in cursor.description]
-        
-        # แสดงผลคอลัมน์
-        print("\t".join(columns))
-        
-        # แสดงผลข้อมูลในตาราง
-        for row in cursor.fetchall():
-            print("\t".join(str(value) for value in row))
+    # การสร้างคำสั่ง SQL
+    command_text = """
+    SELECT
+        Officer.OfficerNumber,
+        Officer.PW,
+        RTRIM(Officer.Name) AS Name
+    FROM Officer
+    WHERE Officer.UN = ?
+    AND Officer.Status IS NULL
+    """
+
+    # การดำเนินการคำสั่ง SQL โดยใช้การป้องกัน SQL Injection ด้วยการใช้ placeholders
+    cursor.execute(command_text, (OfficerUserName,))
+
+    #  การดึงข้อมูลจากฐานข้อมูล
+    results = cursor.fetchall()
+
+    # การแสดงผลข้อมูลที่ดึงมาได้
+    for row in results:
+        officer_number, password, name = row
+        print(f"Officer Number: {officer_number}, Password: {password}, Name: {name}")
 
 except Exception as e:
     print(f"เกิดข้อผิดพลาด: {e}")
